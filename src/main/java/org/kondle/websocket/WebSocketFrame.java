@@ -103,12 +103,14 @@ public class WebSocketFrame
                 for (int i = 0; i < retFrame.length.length; i++)
                     if (retFrame.length[i])
                         dataSize7bits |= 1 << i;
-
                 retFrame.data[0] = new byte[dataSize7bits];
                 buffer = new byte[dataSize7bits];
                 is.read(buffer);
-                for (int i = 0; i < retFrame.data[0].length; i++)
-                    retFrame.data[0][i] = (byte) (buffer[i] ^ retFrame.mask[i % 4]);
+                if (retFrame.isMasked)
+                    for (int i = 0; i < retFrame.data[0].length; i++)
+                        retFrame.data[0][i] = (byte) (buffer[i] ^ retFrame.mask[i % 4]);
+                else
+                    System.arraycopy(buffer, 0, retFrame.data[0], 0, retFrame.data[0].length);
             }
         }
 
