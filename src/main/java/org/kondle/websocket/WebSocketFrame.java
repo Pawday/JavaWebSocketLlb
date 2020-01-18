@@ -19,7 +19,7 @@ public class WebSocketFrame
 
     private byte[] mask;             // no or 4 bytes
 
-    private byte[][] data;           // because max size can be bigger than array's max length
+    private byte[][][] data;           // because max size can be bigger than array's max length
 
 
 
@@ -74,14 +74,14 @@ public class WebSocketFrame
 
                 for (int i = 0; i < buffer.length; i++)
                 {
-                    retFrame.length[0 + 8 * i] = (buffer[i] & 0b00000001) == 0b00000001;
-                    retFrame.length[1 + 8 * i] = (buffer[i] & 0b00000010) == 0b00000010;
-                    retFrame.length[2 + 8 * i] = (buffer[i] & 0b00000100) == 0b00000100;
-                    retFrame.length[3 + 8 * i] = (buffer[i] & 0b00001000) == 0b00001000;
-                    retFrame.length[4 + 8 * i] = (buffer[i] & 0b00010000) == 0b00010000;
-                    retFrame.length[5 + 8 * i] = (buffer[i] & 0b00100000) == 0b00100000;
-                    retFrame.length[6 + 8 * i] = (buffer[i] & 0b01000000) == 0b01000000;
-                    retFrame.length[7 + 8 * i] = (buffer[i] & 0b10000000) == 0b10000000;
+                    retFrame.length[0 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00000001) == 0b00000001;
+                    retFrame.length[1 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00000010) == 0b00000010;
+                    retFrame.length[2 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00000100) == 0b00000100;
+                    retFrame.length[3 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00001000) == 0b00001000;
+                    retFrame.length[4 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00010000) == 0b00010000;
+                    retFrame.length[5 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00100000) == 0b00100000;
+                    retFrame.length[6 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b01000000) == 0b01000000;
+                    retFrame.length[7 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b10000000) == 0b10000000;
                 }
             }
         }
@@ -96,21 +96,89 @@ public class WebSocketFrame
 
         // reading data (if (isMasked) {decode it})
         {
-            if (retFrame.length.length == 7)  //TODO: handle cases with data length 16 bits and 64 bits
+            if (retFrame.length.length == 7)
             {
-                retFrame.data = new byte[1][];
+                retFrame.data = new byte[1][1][];
                 short dataSize7bits = 0;
                 for (int i = 0; i < retFrame.length.length; i++)
-                    if (retFrame.length[i])
-                        dataSize7bits |= 1 << i;
-                retFrame.data[0] = new byte[dataSize7bits];
+                    if (retFrame.length[i]) dataSize7bits |= 1 << i;
+                retFrame.data[0][0] = new byte[dataSize7bits];
                 buffer = new byte[dataSize7bits];
                 is.read(buffer);
                 if (retFrame.isMasked)
-                    for (int i = 0; i < retFrame.data[0].length; i++)
-                        retFrame.data[0][i] = (byte) (buffer[i] ^ retFrame.mask[i % 4]);
-                else
-                    System.arraycopy(buffer, 0, retFrame.data[0], 0, retFrame.data[0].length);
+                {
+                    for (int i = 0; i < retFrame.data[0][0].length; i++)
+                        retFrame.data[0][0][i] = (byte) (buffer[i] ^ retFrame.mask[i % 4]);
+                }
+                else System.arraycopy(buffer, 0, retFrame.data[0][0], 0, retFrame.data[0].length);
+            }
+            else if (retFrame.length.length == 16)
+            {
+                retFrame.data = new byte[1][1][];
+
+                int dataSize16bits = 0;
+
+                for (int i = 0; i < retFrame.length.length; i++)
+                    if (retFrame.length[i]) dataSize16bits |= 1 << i;
+
+                retFrame.data[0][0] = new byte[dataSize16bits];
+                buffer = new byte[dataSize16bits];
+                is.read(buffer);
+
+                if (retFrame.isMasked)
+                    for (int i = 0; i < retFrame.data[0][0].length; i++)
+                        retFrame.data[0][0][i] = (byte) (buffer[i] ^ retFrame.mask[i % 4]);
+                else System.arraycopy(buffer, 0, retFrame.data[0][0], 0, retFrame.data[0].length);
+            }
+            else if (retFrame.length.length == 64)
+            {
+                //                         2 147 483 647   : int java max
+                //            18 446 744 073 709 551 616‬‬‬‬   : 64 bits max value
+                //             9 223 372 036 854 775 808‬‬‬‬‬   : 63 bits max value
+                //             4 611 686 014 132 420 609‬‬‬‬‬‬   : max count of elements in 2 dimensional array
+                // ‭9 903 520 300 447 984 150 353 281 023‬‬‬‬‬   : max count of elements in 3 dimensional array
+
+                int firstDataLengthSegment = 0;
+                int secondDataLengthSegment = 0;
+                int thirdDataLengthSegment = 0;
+
+                for (int i = 0; i < 32; i++)
+                    if (retFrame.length[i]) firstDataLengthSegment |= (1 << i);
+                for (int i = 0; i < 32; i++)
+                    if (retFrame.length[i + 32]) secondDataLengthSegment |= (1 << i);
+                for (int i = 0; i < 1; i++)
+                    if (retFrame.length[i + 62]) thirdDataLengthSegment |= (1 << i);
+
+
+                if (secondDataLengthSegment == 0 && thirdDataLengthSegment > 0)
+                    secondDataLengthSegment = Integer.MAX_VALUE;
+                if (firstDataLengthSegment == 0 && secondDataLengthSegment > 0)
+                    firstDataLengthSegment = Integer.MAX_VALUE;
+                if (secondDataLengthSegment == 0)
+                {
+                    secondDataLengthSegment = 1;
+                    thirdDataLengthSegment = 1;
+                }
+
+                retFrame.data = new byte[thirdDataLengthSegment][secondDataLengthSegment][firstDataLengthSegment];
+
+                for (int i = 0; i < retFrame.data.length; i++)
+                    for (int j = 0; j < retFrame.data[i].length; j++)
+                        for (int k = 0; k < retFrame.data[i][j].length; k++)
+                            retFrame.data[i][j][k] = (byte) is.read();
+
+                if (retFrame.isMasked)
+                {
+                    byte counter = 0;
+                    for (int i = 0; i < retFrame.data.length; i++)
+                        for (int j = 0; j < retFrame.data[i].length; j++)
+                            for (int k = 0; k < retFrame.data[i][j].length; k++)
+                            {
+                                retFrame.data[i][j][k] ^= retFrame.mask[counter % 4];
+                                if (counter == 4) counter = 0;
+                                counter++;
+                            }
+                }
             }
         }
 
