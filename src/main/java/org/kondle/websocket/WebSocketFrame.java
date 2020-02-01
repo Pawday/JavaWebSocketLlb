@@ -19,10 +19,49 @@ public class WebSocketFrame
 
     private byte[] mask;             // no or 4 bytes
 
-    private byte[][][] data;           // because max size can be bigger than array's max length
+    private byte[][][] data;         // because max size can be bigger than array's max length
 
 
+    private WebSocketFrame(){}
 
+    public WebSocketFrame(boolean isFin, boolean rsv1, boolean rsv2, boolean rsv3, boolean[] opcode, boolean isMasked, byte[] mask, byte[][][] data)
+    {
+        this.isFin = isFin;
+        this.rsv1 = rsv1;
+        this.rsv2 = rsv2;
+        this.rsv3 = rsv3;
+        this.opcode = opcode;
+        this.isMasked = isMasked;
+        this.mask = mask;
+        this.data = data;
+        this.length = new boolean[64];
+        Arrays.fill(this.length,false);
+
+        for (int i = 0; i < this.data.length; i++)
+        {
+            for (int j = 0; j < this.data[i].length; j++)
+            {
+                for (int k = 0; k < this.data[i][j].length; k++)
+                {
+                    this.length[0] = !this.length[0];
+                    for (int b = 0; b < this.length.length - 1; b++)
+                    {
+                        boolean cond = true;
+                        for (int b1 = 0; b1 <= b; b1++)
+                        {
+                            cond = cond && !this.length[b1];
+                        }
+                        if (cond) this.length[b + 1] = !this.length[b + 1];
+                    }
+                }
+
+                //TODO: cut length array to 7 or 32 of 64 entries
+            }
+        }
+    }
+
+
+    //TODO: impl write method
 
     public static WebSocketFrame readWebSocketFrame(InputStream is) throws IOException
     {

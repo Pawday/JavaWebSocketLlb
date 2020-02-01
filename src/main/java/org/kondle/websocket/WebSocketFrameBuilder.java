@@ -1,5 +1,7 @@
 package org.kondle.websocket;
 
+import static java.lang.System.arraycopy;
+
 public class WebSocketFrameBuilder
 {
     private boolean isFin = true;
@@ -15,11 +17,10 @@ public class WebSocketFrameBuilder
 
     private byte[] mask;
 
-    private byte[][] dataPart;
-
-    private int insertDataCounter = 0;
-
-    private int dataArrayIncrementValue = 5;
+    private byte[][][] dataArr;
+    private int dataArr1dimCounter;
+    private int dataArr2dimCounter;
+    private int dataArr3dimCounter;
 
     public WebSocketFrameBuilder setFin(boolean isFin)
     {
@@ -65,37 +66,117 @@ public class WebSocketFrameBuilder
 
     public WebSocketFrameBuilder putData(byte[] data)
     {
-
-
-
-        if (this.insertDataCounter <= (this.dataPart.length - 1))
-            this.dataPart[this.insertDataCounter] = data;
-        else
+        if (this.dataArr3dimCounter == 0)
         {
-            byte[][] newDataState = new byte[this.dataPart.length + this.dataArrayIncrementValue][];
-            System.arraycopy(this.dataPart, 0, newDataState, 0, this.dataPart.length);
-            newDataState[this.dataPart.length] = data;
-            this.dataPart = newDataState;
+            this.dataArr[this.dataArr1dimCounter - 1][this.dataArr2dimCounter - 1] = new byte[data.length];
+            this.dataArr[this.dataArr1dimCounter - 1][this.dataArr2dimCounter - 1] = data;
+            dataArr3dimCounter = data.length;
+            return this;
         }
 
-        this.insertDataCounter++;
+        int GLOBAL_ARRAY_MAX_VALUE = Integer.MAX_VALUE;
+
+        if ( ((long) dataArr3dimCounter + data.length) > GLOBAL_ARRAY_MAX_VALUE)
+        {
+            int insertionToLastExistingArrayCount = GLOBAL_ARRAY_MAX_VALUE - dataArr3dimCounter;
+            int newArrayLength = data.length - insertionToLastExistingArrayCount;
+
+            byte[] newLastExistingArrayState = new byte[GLOBAL_ARRAY_MAX_VALUE];
+            byte[] newLastArray = new byte[data.length - insertionToLastExistingArrayCount];
+
+            arraycopy(
+                    this.dataArr[dataArr1dimCounter - 1][this.dataArr2dimCounter - 1],
+                    0,
+                    newLastExistingArrayState,
+                    0,
+                    this.dataArr[dataArr1dimCounter - 1][this.dataArr2dimCounter - 1].length
+                    );
+            arraycopy(
+                    data,
+                    0,
+                    newLastExistingArrayState,
+                    this.dataArr[dataArr1dimCounter - 1][this.dataArr2dimCounter - 1].length,
+                    insertionToLastExistingArrayCount
+            );
+
+            arraycopy(
+                    data,
+                    insertionToLastExistingArrayCount,
+                    newLastArray,
+                    0,
+                    newLastArray.length
+            );
+
+            byte[][][] newDataArr;
+
+
+            newDataArr = new byte[this.dataArr1dimCounter][this.dataArr2dimCounter + 1][];
+
+            for (int i = 0; i < this.dataArr.length; i++)
+            {
+                for (int j = 0; j < this.dataArr[i].length; j++)
+                {
+                    newDataArr[i][j] = new byte[this.dataArr[i][j].length];
+                    arraycopy(
+                            this.dataArr[i][j],
+                            0,
+                            newDataArr[i][j],
+                            0,
+                            this.dataArr[i][j].length
+                    );
+                }
+            }
+
+            newDataArr[this.dataArr1dimCounter - 1][this.dataArr2dimCounter - 1] = newLastExistingArrayState;
+            newDataArr[this.dataArr1dimCounter - 1][this.dataArr2dimCounter] = newLastArray;
+            dataArr2dimCounter++;
+            dataArr3dimCounter = newLastArray.length;
+            this.dataArr = newDataArr;
+        }
+        else
+        {
+            byte[] newLastExistingArrayState = new byte[data.length + dataArr3dimCounter];
+            arraycopy(
+                    this.dataArr[this.dataArr1dimCounter - 1][this.dataArr2dimCounter - 1],
+                    0,
+                    newLastExistingArrayState,
+                    0,
+                    dataArr3dimCounter
+                    );
+            arraycopy(
+                    data,
+                    0,
+                    newLastExistingArrayState,
+                    dataArr3dimCounter,
+                    data.length
+            );
+
+            this.dataArr[this.dataArr1dimCounter - 1][this.dataArr2dimCounter - 1] = newLastExistingArrayState;
+            dataArr3dimCounter += data.length;
+        }
+
         return this;
     }
 
     public WebSocketFrameBuilder()
     {
-        this.dataPart = new byte[1][];
+        this.dataArr1dimCounter = 1;
+        this.dataArr2dimCounter = 1;
+        this.dataArr3dimCounter = 0;
+        this.dataArr = new byte[1][1][];
     }
 
-    public WebSocketFrameBuilder(int dataArrayLength)
+    public WebSocketFrame build()
     {
-        this.dataPart = new byte[dataArrayLength][];
+        return new WebSocketFrame(
+                this.isFin,
+                this.rsv1,
+                this.rsv2,
+                this.rsv3,
+                this.opcode,
+                this.isMasked,
+                this.mask,
+                this.dataArr
+                );
     }
-
-    public WebSocketFrameBuilder(int dataArrayLength,int dataArrayIncrementValue)
-    {
-        this.insertDataCounter = dataArrayIncrementValue;
-        this.dataPart = new byte[dataArrayLength][];
-    }
-
 }
