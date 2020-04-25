@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class WebSocket
 {
@@ -30,6 +31,7 @@ public class WebSocket
         this.s = socket;
         this.currentFrameMeta = WebSocketFrameMeta.getInstanceFromInputStream(this.s.getInputStream());
         this.readedBytesCount = new boolean[currentFrameMeta.length.length];
+        Arrays.fill(this.readedBytesCount,false);
     }
 
     WebSocket(){}    // package-private
@@ -39,13 +41,20 @@ public class WebSocket
 
     }
 
-    public void receive(byte[] buffer)
+    public int receive(byte[] buffer)
     {
-
+        return 0;
     }
 
     public void close()
     {
 
+    }
+
+    public InputStream getInputStream() throws IOException
+    {
+        //TODO: its only one frame, do multiframe System
+        this.currentFrameMeta = WebSocketFrameMeta.getInstanceFromInputStream(s.getInputStream());
+        return new WebSocketFrameInputStream(currentFrameMeta,s.getInputStream());
     }
 }

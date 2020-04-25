@@ -10,7 +10,7 @@ public class WebSocketFrameMeta
     private boolean rsv2;
     private boolean rsv3;
 
-    private boolean[] opcode;        // 4 bits
+    boolean[] opcode;        // 4 bits
 
     private boolean isMasked;
 
@@ -92,4 +92,23 @@ public class WebSocketFrameMeta
         return retMeta;
     }
 
+    public boolean isFin()
+    {
+        return isFin;
+    }
+
+    public boolean isRsv1()
+    {
+        return rsv1;
+    }
+
+    public boolean isRsv2()
+    {
+        return rsv2;
+    }
+
+    public boolean isRsv3()
+    {
+        return rsv3;
+    }
 }

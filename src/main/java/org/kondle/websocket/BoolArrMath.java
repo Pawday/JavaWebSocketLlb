@@ -1,6 +1,6 @@
 package org.kondle.websocket;
 
-public class Counter
+public class BoolArrMath
 {
     public static void incrementBoolArr(boolean[] arr)
     {

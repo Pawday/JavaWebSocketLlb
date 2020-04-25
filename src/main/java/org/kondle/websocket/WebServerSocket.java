@@ -44,8 +44,9 @@ public class WebServerSocket
             {
                 buf[0] = buf[1];
                 buf[1] = (char) reader.read();
+                reqLine.append(buf[1]);
             }
-            reqLine.delete(reqLine.length() - 2, reqLine.length());
+            reqLine.delete(reqLine.length() - 1,reqLine.length());
             retSock.reqLine = reqLine.toString();
         }
 
