@@ -32,10 +32,7 @@ public class WebSocket
     {
         this.s = socket;
         //create first frame in creating socket
-        this.currentFrame = new WebSocketFrame(s.getInputStream());
-        boolean[] readedBytesCount = this.currentFrame.getMeta().getReadedBytesCount();
-        Arrays.fill(readedBytesCount,false);
-        this.currentFrame.getMeta().setReadedBytesCount(readedBytesCount);
+        nextFrame();
     }
 
     public void send(byte[] data)
@@ -55,7 +52,14 @@ public class WebSocket
 
     public InputStream getInputStream() throws IOException
     {
-        //TODO: implement frames changing
+        if (currentFrame.isClosed()) nextFrame();
         return this.currentFrame.getInputStream();
+    }
+    public void nextFrame() throws IOException
+    {
+        this.currentFrame = new WebSocketFrame(s.getInputStream());
+        boolean[] readedBytesCount = this.currentFrame.getMeta().getReadedBytesCount();
+        Arrays.fill(readedBytesCount,false);
+        this.currentFrame.getMeta().setReadedBytesCount(readedBytesCount);
     }
 }
