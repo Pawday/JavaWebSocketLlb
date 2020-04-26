@@ -1,5 +1,7 @@
 package org.kondle.websocket;
 
+import java.util.Arrays;
+
 public class BoolArrMath
 {
     public static void incrementBoolArr(boolean[] arr)
@@ -53,7 +55,41 @@ public class BoolArrMath
                 new IllegalArgumentException("Is not possible to compare different length arrays");
         boolean isEquals = true;
         for(int i = 0; i < arr1.length && isEquals; i++)
-            isEquals = (arr1[i] != arr2[i]);
+            isEquals = (arr1[i] == arr2[i]);
         return isEquals;
+    }
+
+    /**
+     * @return   is moreArr > lessArr
+     */
+    public static boolean isMoreThat(boolean[] moreArr, boolean[] lessArr)
+    {
+        if (moreArr.length != lessArr.length) throw
+                new IllegalArgumentException("Is not possible to compare different length arrays");
+        boolean isMore = false;
+
+        for (int i = moreArr.length - 1; i >= 0 && !isMore; i--)
+        {
+            if (moreArr[i] == lessArr[i]) continue;
+            if (moreArr[i] && !lessArr[i]) isMore = true;
+        }
+        return isMore;
+    }
+
+    /**
+     * @return   is lessArr < moreArr
+     */
+    public static boolean isLessThat(boolean[] lessArr, boolean[] moreArr)
+    {
+        if (moreArr.length != lessArr.length) throw
+                new IllegalArgumentException("Is not possible to compare different length arrays");
+        boolean isLess = false;
+
+        for (int i = moreArr.length - 1; i >= 0 && !isLess; i--)
+        {
+            if (moreArr[i] == lessArr[i]) continue;
+            if (!lessArr[i] && moreArr[i]) isLess = true;
+        }
+        return isLess;
     }
 }
