@@ -1,6 +1,7 @@
 package org.kondle.websocket;
 
 
+import org.kondle.websocket.frame.WebSocketFrame;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,26 +16,27 @@ public class WebSocket
     private InputStream is;
     private OutputStream os;
 
-    private WebSocketFrameMeta currentFrameMeta;
-    private boolean[] readedBytesCount;
+    private WebSocketFrame currentFrame;
 
     String reqLine;           // package-private
-    String[][] reqHeaders;    // package-private
+    String[][] reqHeaders;    // package-private //TODO: implement HTTP Header Class for this
 
     public WebSocket(String host, int port) throws IOException
     {
         this.s = new Socket(host,port);
+        //TODO: implement HTTP Switching Protocols
+
     }
 
     public WebSocket(Socket socket) throws IOException
     {
         this.s = socket;
-        this.currentFrameMeta = WebSocketFrameMeta.getInstanceFromInputStream(this.s.getInputStream());
-        this.readedBytesCount = new boolean[currentFrameMeta.length.length];
-        Arrays.fill(this.readedBytesCount,false);
+        //create first frame in creating socket
+        this.currentFrame = new WebSocketFrame(s.getInputStream());
+        boolean[] readedBytesCount = this.currentFrame.getMeta().getReadedBytesCount();
+        Arrays.fill(readedBytesCount,false);
+        this.currentFrame.getMeta().setReadedBytesCount(readedBytesCount);
     }
-
-    WebSocket(){}    // package-private
 
     public void send(byte[] data)
     {
@@ -53,8 +55,7 @@ public class WebSocket
 
     public InputStream getInputStream() throws IOException
     {
-        //TODO: its only one frame, do multiframe System
-        this.currentFrameMeta = WebSocketFrameMeta.getInstanceFromInputStream(s.getInputStream());
-        return new WebSocketFrameInputStream(currentFrameMeta,s.getInputStream());
+        //TODO: implement frames changing
+        return this.currentFrame.getInputStream();
     }
 }

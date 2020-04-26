@@ -26,10 +26,11 @@ public class WebServerSocket
 
     public WebSocket accept() throws IOException
     {
-        WebSocket retSock = new WebSocket();
-
         Socket s = serverSocket.accept();
 
+
+        //switching protocols part
+        //TODO: move switching protocols part to method
         char[] rel = new char[]{'\r','\n'};
         char[] buf = new char[]{' ',' '};
 
@@ -38,8 +39,8 @@ public class WebServerSocket
 
         InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
 
+        StringBuilder reqLine = new StringBuilder();
         {
-            StringBuilder reqLine = new StringBuilder();
             while (!Arrays.equals(rel, buf))
             {
                 buf[0] = buf[1];
@@ -47,7 +48,6 @@ public class WebServerSocket
                 reqLine.append(buf[1]);
             }
             reqLine.delete(reqLine.length() - 1,reqLine.length());
-            retSock.reqLine = reqLine.toString();
         }
 
         rel = new char[]{'\r','\n','\r','\n'};
@@ -99,7 +99,10 @@ public class WebServerSocket
                 );
 
         os.write(response.getBytes(StandardCharsets.UTF_8));
-        retSock.s = s;
+
+        WebSocket retSock = new WebSocket(s);
+
+        //TODO: fill retSock's reqHeaders here after creating class Header
 
         return retSock;
     }

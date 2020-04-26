@@ -1,4 +1,4 @@
-package org.kondle.websocket;
+package org.kondle.websocket.frame;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +15,7 @@ public class WebSocketFrameMeta
     private boolean isMasked;
 
     boolean[] length;                // 7 bits or 16 bits or 64 bits
+    boolean[] readedBytesCount;      // also length
 
     byte[] mask;             // no or 4 bytes
 
@@ -90,6 +91,21 @@ public class WebSocketFrameMeta
         }
 
         return retMeta;
+    }
+
+    public boolean[] getLength()
+    {
+        return length;
+    }
+
+    public boolean[] getReadedBytesCount()
+    {
+        return readedBytesCount;
+    }
+
+    public void setReadedBytesCount(boolean[] readedBytesCount)
+    {
+        this.readedBytesCount = readedBytesCount;
     }
 
     public boolean isFin()

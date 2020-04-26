@@ -38,4 +38,22 @@ public class BoolArrMath
             } else return;
         }
     }
+
+    public static boolean isNull(boolean[] arr)
+    {
+        boolean isNull = true;
+        for (int i = 0; i < arr.length && isNull; i++)
+            if (arr[i]) isNull = false;
+        return isNull;
+    }
+
+    public static boolean isEquals(boolean[] arr1,boolean[] arr2)
+    {
+        if (arr1.length != arr2.length) throw
+                new IllegalArgumentException("Is not possible to compare different length arrays");
+        boolean isEquals = true;
+        for(int i = 0; i < arr1.length && isEquals; i++)
+            isEquals = (arr1[i] != arr2[i]);
+        return isEquals;
+    }
 }
