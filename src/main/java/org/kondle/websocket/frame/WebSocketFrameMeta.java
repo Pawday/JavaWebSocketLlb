@@ -90,6 +90,7 @@ public class WebSocketFrameMeta
             retMeta.mask = buffer;
         }
 
+        retMeta.readedBytesCount = new boolean[retMeta.length.length];
         return retMeta;
     }
 

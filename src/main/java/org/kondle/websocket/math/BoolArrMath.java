@@ -1,6 +1,4 @@
-package org.kondle.websocket;
-
-import java.util.Arrays;
+package org.kondle.websocket.math;
 
 public class BoolArrMath
 {

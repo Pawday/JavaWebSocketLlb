@@ -1,6 +1,6 @@
 package org.kondle.websocket.frame;
 
-import org.kondle.websocket.BoolArrMath;
+import org.kondle.websocket.math.BoolArrMath;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +23,7 @@ public class WebSocketFrameInputStream extends InputStream
     @Override
     public int read() throws IOException
     {
-        if (BoolArrMath.isEquals(this.frame.meta.length,this.frame.meta.length))
+        if (BoolArrMath.isEquals(this.frame.meta.length,this.frame.meta.readedBytesCount))
         {
             this.frame.close();
             return -1;

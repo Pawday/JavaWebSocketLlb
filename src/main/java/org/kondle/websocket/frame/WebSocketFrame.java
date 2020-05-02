@@ -6,12 +6,13 @@ import java.io.InputStream;
 public class WebSocketFrame
 {
     boolean isClosed = false;
-    private WebSocketFrameInputStream inputStream;
     WebSocketFrameMeta meta;
+    private WebSocketFrameInputStream inputStream;
 
     public WebSocketFrame(InputStream is) throws IOException
     {
         this.meta = WebSocketFrameMeta.getInstanceFromInputStream(is);
+        this.inputStream = new WebSocketFrameInputStream(this,is);
     }
 
     public void close()
