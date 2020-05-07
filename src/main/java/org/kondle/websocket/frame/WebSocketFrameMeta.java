@@ -1,5 +1,7 @@
 package org.kondle.websocket.frame;
 
+import org.kondle.websocket.structs.Opcode;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -10,7 +12,7 @@ public class WebSocketFrameMeta
     private boolean rsv2;
     private boolean rsv3;
 
-    boolean[] opcode;        // 4 bits
+    private Opcode opcode;        // 4 bits
 
     private boolean isMasked;
 
@@ -30,16 +32,17 @@ public class WebSocketFrameMeta
         {
             buffer = new byte[1];
             inputStream.read(buffer);
-            retMeta.opcode = new boolean[4];
+            boolean[] opcodeArr = new boolean[4];
 
             retMeta.isFin     = (buffer[0] & 0b00000001) == 0b00000001;
             retMeta.rsv1      = (buffer[0] & 0b00000010) == 0b00000010;
             retMeta.rsv2      = (buffer[0] & 0b00000100) == 0b00000100;
             retMeta.rsv3      = (buffer[0] & 0b00001000) == 0b00001000;
-            retMeta.opcode[0] = (buffer[0] & 0b00010000) == 0b00010000;
-            retMeta.opcode[1] = (buffer[0] & 0b00100000) == 0b00100000;
-            retMeta.opcode[2] = (buffer[0] & 0b01000000) == 0b01000000;
-            retMeta.opcode[3] = (buffer[0] & 0b10000000) == 0b10000000;
+            opcodeArr[0]      = (buffer[0] & 0b00010000) == 0b00010000;
+            opcodeArr[1]      = (buffer[0] & 0b00100000) == 0b00100000;
+            opcodeArr[2]      = (buffer[0] & 0b01000000) == 0b01000000;
+            opcodeArr[3]      = (buffer[0] & 0b10000000) == 0b10000000;
+            retMeta.opcode = Opcode.getFromBoolArr(opcodeArr);
         }
 
         // reading maskBit and length bits (7, 16 or 64 bits)
@@ -107,6 +110,16 @@ public class WebSocketFrameMeta
     public void setReadedBytesCount(boolean[] readedBytesCount)
     {
         this.readedBytesCount = readedBytesCount;
+    }
+
+    public Opcode getOpcode()
+    {
+        return opcode;
+    }
+
+    public boolean isMasked()
+    {
+        return isMasked;
     }
 
     public boolean isFin()

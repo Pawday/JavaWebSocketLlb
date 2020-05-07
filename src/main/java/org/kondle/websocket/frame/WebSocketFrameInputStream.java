@@ -29,7 +29,7 @@ public class WebSocketFrameInputStream extends InputStream
             return -1;
         }
         BoolArrMath.incrementBoolArr(this.frame.meta.readedBytesCount);
-        if (this.frame.getMeta().mask != null)
+        if (this.frame.getMeta().isMasked())
         {
             if (maskIndex == 3)
             {
