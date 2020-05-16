@@ -16,10 +16,10 @@ public class WebSocketFrameMeta
 
     private boolean isMasked;
 
-    boolean[] length;                // 7 bits or 16 bits or 64 bits
-    boolean[] readedBytesCount;      // also length
+    /* unsigned */ long length = 0;  // 7 bits or 16 bits or 64 bits
+    /* unsigned */ long readedBytesCount = 0;
 
-    byte[] mask;             // no or 4 bytes
+    byte[] mask;  // no or 4 bytes
 
 
     public static WebSocketFrameMeta getInstanceFromInputStream(InputStream inputStream) throws IOException
@@ -47,21 +47,19 @@ public class WebSocketFrameMeta
 
         // reading maskBit and length bits (7, 16 or 64 bits)
         {
+            // sizeof buffer is 1;
             inputStream.read(buffer);
             retMeta.isMasked  = (buffer[0] & 0b10000000) == 0b10000000; // 8
 
-            short firstSize = (short) (buffer[0] & 0b1111111);
+            int a = 0b01000101;
 
-            if (firstSize < 126)
+            short firstSize = (short) (buffer[0] & 0b01111111);
+
+            if (firstSize < 0b01111110)  //126
             {
-                retMeta.length = new boolean[7];
-                retMeta.length[0] = (buffer[0] & 0b00000001) == 0b00000001; // 1
-                retMeta.length[1] = (buffer[0] & 0b00000010) == 0b00000010; // 2
-                retMeta.length[2] = (buffer[0] & 0b00000100) == 0b00000100; // 3
-                retMeta.length[3] = (buffer[0] & 0b00001000) == 0b00001000; // 4
-                retMeta.length[4] = (buffer[0] & 0b00010000) == 0b00010000; // 5
-                retMeta.length[5] = (buffer[0] & 0b00100000) == 0b00100000; // 6
-                retMeta.length[6] = (buffer[0] & 0b01000000) == 0b01000000; // 7
+                retMeta.length = 0;
+                retMeta.length = buffer[0] & 0b01111111;
+                System.out.println("length: " + retMeta.length);
             }
             else
             {
@@ -69,18 +67,10 @@ public class WebSocketFrameMeta
                 if (firstSize == 127) buffer = new byte[8];
 
                 inputStream.read(buffer);
-                retMeta.length = new boolean[buffer.length * 8];
 
                 for (int i = 0; i < buffer.length; i++)
                 {
-                    retMeta.length[0 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00000001) == 0b00000001;
-                    retMeta.length[1 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00000010) == 0b00000010;
-                    retMeta.length[2 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00000100) == 0b00000100;
-                    retMeta.length[3 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00001000) == 0b00001000;
-                    retMeta.length[4 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00010000) == 0b00010000;
-                    retMeta.length[5 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b00100000) == 0b00100000;
-                    retMeta.length[6 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b01000000) == 0b01000000;
-                    retMeta.length[7 + 8 * i] = (buffer[buffer.length - 1 - i] & 0b10000000) == 0b10000000;
+                    retMeta.length &= ((i * 8) << buffer[buffer.length - 1 - i]);
                 }
             }
         }
@@ -92,25 +82,19 @@ public class WebSocketFrameMeta
             inputStream.read(buffer);
             retMeta.mask = buffer;
         }
-
-        retMeta.readedBytesCount = new boolean[retMeta.length.length];
         return retMeta;
     }
 
-    public boolean[] getLength()
+    public long getLength()
     {
         return length;
     }
 
-    public boolean[] getReadedBytesCount()
+    public long getReadedBytesCount()
     {
         return readedBytesCount;
     }
 
-    public void setReadedBytesCount(boolean[] readedBytesCount)
-    {
-        this.readedBytesCount = readedBytesCount;
-    }
 
     public Opcode getOpcode()
     {
