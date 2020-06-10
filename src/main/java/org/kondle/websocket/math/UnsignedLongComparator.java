@@ -3,8 +3,8 @@ package org.kondle.websocket.math;
 public class UnsignedLongComparator
 {
 
-    private static long mask = 0x7fffffffffffffffL;
-    private static long r_mask = 0x8000000000000000L;
+    private static final long mask = 0x7fffffffffffffffL;
+    private static final long r_mask = 0x8000000000000000L;
 
     /**
      * @return   is (u_long) a > (u_long) b

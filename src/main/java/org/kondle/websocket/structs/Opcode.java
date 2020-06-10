@@ -10,7 +10,7 @@ public enum Opcode
     PONG((byte)0xA),
     NOTDEFINE((byte)0xF);
 
-    private byte value;
+    private final byte value;
 
     Opcode(byte value)
     {

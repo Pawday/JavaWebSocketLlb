@@ -39,7 +39,7 @@ public class WebServerSocket
 
         InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
 
-        StringBuilder reqLine = new StringBuilder();
+        StringBuilder reqLine = new StringBuilder(); // TODO: need return reqLine to WebSocket object
         {
             while (!Arrays.equals(rel, buf))
             {

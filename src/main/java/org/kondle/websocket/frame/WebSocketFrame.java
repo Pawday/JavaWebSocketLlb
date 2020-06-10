@@ -11,7 +11,7 @@ public class WebSocketFrame
 
     public WebSocketFrame(InputStream is) throws IOException
     {
-        this.meta = WebSocketFrameMeta.getInstanceFromInputStream(is);
+        this.meta = new WebSocketFrameMeta(is);
         this.inputStream = new WebSocketFrameInputStream(this,is);
     }
 
