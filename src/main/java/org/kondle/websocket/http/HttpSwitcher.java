@@ -1,41 +1,27 @@
-package org.kondle.websocket;
+package org.kondle.websocket.http;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 
-public class WebServerSocket
+public class HttpSwitcher
 {
-    private ServerSocket serverSocket;
-    private String webSocketKey;
-
-    public WebServerSocket(int port,InetAddress bindAddr) throws IOException
-    {
-        this.serverSocket = new ServerSocket(port,0,bindAddr);
-    }
-
-
-    public WebSocket accept() throws IOException
-    {
-        Socket s = serverSocket.accept();
-
-
+    /**
+     * @param is
+     * @param os
+     * @return list of headers from httpReq if it is
+     * @throws IOException
+     */
+    public static String[] switchToWebSocket(InputStream is, OutputStream os) throws IOException {
         //switching protocols part
-        //TODO: move switching protocols part to method
         char[] rel = new char[]{'\r','\n'};
         char[] buf = new char[]{' ',' '};
-
-        InputStream is = s.getInputStream();
-        OutputStream os = s.getOutputStream();
 
         InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
 
@@ -67,14 +53,18 @@ public class WebServerSocket
 
         String[] headers = headersBuilder.toString().split("\\r\\n");
 
+        String webSocketKey = null;
+
         for (int i = 1; i < headers.length; i++)
         {
             String[] header = headers[i].split(": ");
             if (header[0].equals("Sec-WebSocket-Key"))
-                this.webSocketKey = header[1];
+                webSocketKey = header[1];
+
+            //TODO: add webSocketKey to headersList
         }
 
-        String keyCat = this.webSocketKey.concat("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+        String keyCat = webSocketKey.concat("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
         String keyRes = null;
         MessageDigest crypt = null;
         try
@@ -100,10 +90,7 @@ public class WebServerSocket
 
         os.write(response.getBytes(StandardCharsets.UTF_8));
 
-        WebSocket retSock = new WebSocket(s);
+        return headers;
 
-        //TODO: fill retSock's reqHeaders here after creating class Header
-
-        return retSock;
     }
 }

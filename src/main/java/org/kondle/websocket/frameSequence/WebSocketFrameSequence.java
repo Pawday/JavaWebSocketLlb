@@ -4,21 +4,23 @@ import org.kondle.websocket.frame.WebSocketFrame;
 import org.kondle.websocket.frame.WebSocketFrameInputStream;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.io.InputStream;
 
 public class WebSocketFrameSequence
 {
     WebSocketFrame currentFrame;
     boolean isClosed = false;
     boolean needClose = false;
-    private Socket s;
     private WebSocketFrameSequenceInputStream is;
 
-    public WebSocketFrameSequence(Socket s) throws IOException
+    private InputStream baseInputStream;
+
+    public WebSocketFrameSequence(InputStream is) throws IOException
     {
-        this.s = s;
+        this.baseInputStream = is;
+        //get first frame
         nextFrame();
-        this.is = new WebSocketFrameSequenceInputStream(this,s.getInputStream());
+        new WebSocketFrameSequenceInputStream(this,this.baseInputStream);
     }
 
     public WebSocketFrameSequenceInputStream getInputStream()
@@ -28,7 +30,7 @@ public class WebSocketFrameSequence
 
     public void nextFrame() throws IOException
     {
-        this.currentFrame = new WebSocketFrame(this.s.getInputStream());
+        this.currentFrame = new WebSocketFrame(this.baseInputStream);
         if (currentFrame.getMeta().isFin()) needClose = true;
     }
 
