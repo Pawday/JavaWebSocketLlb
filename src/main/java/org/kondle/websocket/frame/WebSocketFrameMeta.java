@@ -33,14 +33,14 @@ public class WebSocketFrameMeta
             inputStream.read(buffer);
             boolean[] opcodeArr = new boolean[4];
 
-            this.isFin     = (buffer[0] & 0b00000001) == 0b00000001;
-            this.rsv1      = (buffer[0] & 0b00000010) == 0b00000010;
-            this.rsv2      = (buffer[0] & 0b00000100) == 0b00000100;
-            this.rsv3      = (buffer[0] & 0b00001000) == 0b00001000;
-            opcodeArr[0]      = (buffer[0] & 0b00010000) == 0b00010000;
-            opcodeArr[1]      = (buffer[0] & 0b00100000) == 0b00100000;
-            opcodeArr[2]      = (buffer[0] & 0b01000000) == 0b01000000;
-            opcodeArr[3]      = (buffer[0] & 0b10000000) == 0b10000000;
+            this.isFin        = (buffer[0] & 0b10000000) == 0b10000000;
+            this.rsv1         = (buffer[0] & 0b01000000) == 0b01000000;
+            this.rsv2         = (buffer[0] & 0b00100000) == 0b00100000;
+            this.rsv3         = (buffer[0] & 0b00010000) == 0b00010000;
+            opcodeArr[0]      = (buffer[0] & 0b00001000) == 0b00001000;
+            opcodeArr[1]      = (buffer[0] & 0b00000100) == 0b00000100;
+            opcodeArr[2]      = (buffer[0] & 0b00000010) == 0b00000010;
+            opcodeArr[3]      = (buffer[0] & 0b00000001) == 0b00000001;
             this.opcode = Opcode.getFromBoolArr(opcodeArr);
         }
 
@@ -50,7 +50,6 @@ public class WebSocketFrameMeta
             inputStream.read(buffer);
             this.isMasked  = (buffer[0] & 0b10000000) == 0b10000000; // 8
 
-            int a = 0b01000101;
 
             short firstSize = (short) (buffer[0] & 0b01111111);
 
@@ -67,9 +66,7 @@ public class WebSocketFrameMeta
                 inputStream.read(buffer);
 
                 for (int i = 0; i < buffer.length; i++)
-                {
-                    this.length |= ((i * 8) << buffer[buffer.length - 1 - i]);
-                }
+                    this.length |= (((long) buffer[i] & 0xff) << ((buffer.length - 1 - i) * 8));
             }
         }
 
