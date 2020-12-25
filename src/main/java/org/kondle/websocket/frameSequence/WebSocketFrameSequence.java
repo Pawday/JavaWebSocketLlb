@@ -33,8 +33,18 @@ public class WebSocketFrameSequence
         if (currentFrame.getMeta().isFin()) needClose = true;
     }
 
+    public void close()
+    {
+        this.isClosed = true;
+    }
+
     public boolean isClosed()
     {
         return isClosed;
+    }
+
+    public WebSocketFrame getCurrentFrame()
+    {
+        return currentFrame;
     }
 }

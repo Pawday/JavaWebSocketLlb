@@ -16,17 +16,17 @@ public class WebSocket
 
     private OutputStream os;
 
+    private WebSocketInputStream is;
+
     WebSocketFrameSequence currentFrameSequence;
 
-    String reqLine;           // package-private
-    String[][] reqHeaders;    // package-private //TODO: implement HTTP Header Class for this
-
-
-    public WebSocket(InputStream is, OutputStream os) throws IOException {
+    public WebSocket(InputStream is, OutputStream os) throws IOException
+    {
         this.baseInputStream = is;
         this.baseOutputStream = os;
         //create first sequence in creating socket
         nextSequence();
+        this.is = new WebSocketInputStream(this);
     }
 
     void nextSequence() throws IOException
@@ -38,5 +38,10 @@ public class WebSocket
     public WebSocketFrameSequence getCurrentFrameSequence()
     {
         return currentFrameSequence;
+    }
+
+    public WebSocketInputStream getInputStream()
+    {
+        return is;
     }
 }

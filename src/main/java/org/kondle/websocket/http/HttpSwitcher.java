@@ -60,8 +60,6 @@ public class HttpSwitcher
             String[] header = headers[i].split(": ");
             if (header[0].equals("Sec-WebSocket-Key"))
                 webSocketKey = header[1];
-
-            //TODO: add webSocketKey to headersList
         }
 
         String keyCat = webSocketKey.concat("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");

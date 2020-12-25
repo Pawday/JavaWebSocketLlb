@@ -1,5 +1,7 @@
 package org.kondle.websocket;
 
+import org.kondle.websocket.structs.Opcode;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -17,11 +19,10 @@ public class WebSocketInputStream extends InputStream
     {
         if (ws.currentFrameSequence.isClosed())
         {
-            /*
-                TODO: check ping frame in other thread if sequence is closed (need to send pong frame)
-                 + read spec about ping and pong frames
-             */
             ws.nextSequence();
+
+            //TODO: check control frames here
+            if (ws.currentFrameSequence.getCurrentFrame().getMeta().getOpcode() == Opcode.CLOSE) return -1;
         }
         return ws.currentFrameSequence.getInputStream().read();
     }
